@@ -16,7 +16,6 @@
   # Exklusive GNOME-Pakete
   environment.systemPackages = with pkgs; [
     gnome-tweaks
-    gnome.gnome-extensions-app
     gnomeExtensions.appindicator
     gnomeExtensions.dash-to-dock
   ];
