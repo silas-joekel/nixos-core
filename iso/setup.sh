@@ -19,14 +19,17 @@ collect_inputs() {
     # Username & host
     read -p "System-Username [silas]: " OS_USER
     OS_USER=${OS_USER:-"silas"}
+    echo -n "User-Passwort eingeben: "
+    read -s USER_PASS && echo ""
+    USER_PASS=${DISK_PASS:-"asdf"}
     read -p "Hostname eingeben: " HOSTNAME
-    HOSTNAME=${HOSTNAME:-"test"}
+    HOSTNAME=${HOSTNAME:-"asdf"}
     
     # Disk & encryption password
     select_disk
     echo -n "Festplatten-Passwort (LUKS): "
     read -s DISK_PASS && echo ""
-    DISK_PASS=${DISK_PASS:-"test"}
+    DISK_PASS=${DISK_PASS:-"asdf"}
     
     # Git Setup
     PROVIDER=$(select_option "Git-Provider wählen" "GitHub" "GitLab" "Bitbucket")
@@ -81,11 +84,12 @@ print_summary() {
     echo "----------------------------------------------------"
     echo "-- OS ----------------------------------------------"
     echo "User: $OS_USER"
+    echo "User password: ********"
     echo "Hostname: $HOSTNAME"
     echo "----------------------------------------------------"
     echo "-- DISK --------------------------------------------"
     echo "Festplatte: /dev/$DISK"
-    echo "Festplatten-Password: $DISK_PASS"
+    echo "Festplatten-Password: **********"
     echo "----------------------------------------------------"
     echo "-- Git ---------------------------------------------"
     echo "Provider: $PROVIDER"
@@ -163,7 +167,10 @@ setup_nix() {
 
 install_nix() {
     echo "🚀 Starte finale Installation von NixOS ..."
-    sudo nixos-install --flake "/tmp/$REPO_NAME#$HOSTNAME"
+    sudo nixos-install --no-root-passwd --flake "/tmp/$REPO_NAME#$HOSTNAME"
+    sudo nixos-enter --root /mnt -c "echo $DISK_PASS | passwd --stdin root"
+    sudo nixos-enter --root /mnt -c "useradd -m -U $OS_USER -p $USER_PASS"
+    sudo nixos-enter --root /mnt -c "echo $USER_PASS | passwd --stdin $OS_USER"
 }
 
 confirm_install() {
@@ -171,15 +178,36 @@ confirm_install() {
     CONFIRM=${CONFIRM:-"y"}
 }
 
-setup() {
+prepare_home() {
+    TARGET_HOME="/mnt/home/$OS_USER"
+    
+    # ssh keys
+    sudo mkdir -p "$TARGET_HOME/.ssh"
+    sudo cp ~/.ssh/id_ed25519* "$TARGET_HOME/.ssh/"
+    sudo chmod 700 "$TARGET_HOME/.ssh"
+    sudo chmod 600 "$TARGET_HOME/.ssh/id_ed25519"
+
+    # Host-Repo kopieren
+    sudo cp -r "/tmp/$REPO_NAME" "$TARGET_HOME/$REPO_NAME"
+
+    sudo chown -R 1000:100 "$TARGET_HOME"
+}
+
+finalize() {
+    cd /
+    sudo umount -R /mnt
+    sync
+}
+
+main() {
+    # Setup
     check_network
     collect_inputs
     print_summary
     setup_ssh
     setup_git
-}
-
-install() {
+    
+    # Partitioning & Installation
     confirm_install
     if [ "$CONFIRM" == "y" ]; then
     	echo "Installation wird gestartet ..."
@@ -190,11 +218,10 @@ install() {
     else
         echo "Installation abgebrochen!"
     fi
-}
-
-main() {
-    setup
-    install
+    
+    # Copy ssh & repo
+    prepare_home
+    finalize
 }
 
 main
