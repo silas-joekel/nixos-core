@@ -19,6 +19,7 @@
     # 1. Export der Module (für die Nutzung in Host-Repos)
     nixosModules = {
       core = import ./modules/core;
+      gnome = import ./modules/gnome;
       web-dev = import ./modules/web-dev;
       gaming = import ./modules/gaming;
       
