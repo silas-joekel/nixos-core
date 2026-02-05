@@ -1,25 +1,37 @@
 { pkgs, ... }: {
-  # Grundlegende System-Features
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings = {
+    experimental-features = [ "nix-command" "flakes" ];
+    auto-optimise-store = true; # Verhindert doppelte Dateien im Store
+  };
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 7d";
+  };
   
-  # Basis-Pakete
-  environment.systemPackages = with pkgs; [
-    git vim wget curl cryptsetup
-  ];
-
-  # Bootloader & Encryption Vorbereitung (nur Logik, keine Hardware-IDs)
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   
-  # Locale
+  networking.networkmanager.enable = true;
+  
+  environment.systemPackages = with pkgs; [
+    git
+    wget
+    curl
+    pciutils
+    usbutils
+  ];
+  
+  services.openssh = {
+    enable = true;
+    settings = {
+      PasswordAuthentication = false; # Nur SSH-Keys für maximale Sicherheit
+      KbdInteractiveAuthentication = false;
+      PermitRootLogin = "no";
+    };
+  };
+
+  time.timeZone = "Europe/Berlin";
   i18n.defaultLocale = "de_DE.UTF-8";
   console.keyMap = "de";
-  
-  # Dein Window-Manager (Beispiel Sway)
-  programs.sway.enable = true;
-  
-  # Install firefox.
-  programs.firefox.enable = true;
-
-  networking.networkmanager.enable = true;
 }
