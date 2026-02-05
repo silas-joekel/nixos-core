@@ -105,10 +105,6 @@ setup_ssh() {
 }
 
 setup_git() {
-    PROVIDER="GitHub"
-    HOSTNAME="test"
-    BASE_URL="github.com"
-    REPO_URL="git@github.com:silas-joekel/nixos-config-test.git"
     if [[ "$PROVIDER" == "GitHub" ]]; then
         BROWSER=false gh auth login --git-protocol ssh --hostname github.com --scopes write:public_key --skip-ssh-key --web
         gh ssh-key add ~/.ssh/id_ed25519.pub --title "host-$HOSTNAME"
@@ -138,14 +134,16 @@ format_disk() {
 setup_nix() {
     # Hardware-Config generieren
     echo "🔍 Erkenne Hardware-Spezifikationen..."
-    nixos-generate-config --no-filesystems --root /mnt --dir /tmp
+    sudo nixos-generate-config --no-filesystems --root /mnt --dir /tmp
 
     # Try loading existing git repo for host
     if ! git clone "$REPO_URL" "/tmp/$REPO_NAME"; then
-    	echo "Repo for host $HOST not found."
+    	echo "Repo for host $HOSTNAME not found."
     	mkdir -p /tmp/$REPO_NAME
+    	cp /etc/nixos/templates/disko-config.nix /tmp/$REPO_NAME/disko-config.nix
     	cp /etc/nixos/templates/host-flake.nix /tmp/$REPO_NAME/flake.nix
         sed -i "s/__HOSTNAME__/$HOSTNAME/g" /tmp/$REPO_NAME/flake.nix
+        sed -i "s/__DISK__/$DISK/g" /tmp/$REPO_NAME/flake.nix
         
         git init "/tmp/$REPO_NAME"
         git -C "/tmp/$REPO_NAME" add .
@@ -156,10 +154,10 @@ setup_nix() {
     	echo "Repo $REPO_NAME has been cloned successfully."
     fi
 
-    mv /tmp/hardware-configuration.nix /tmp/$REPO_NAME/hardware-configuration.nix
+    sudo mv /tmp/hardware-configuration.nix /tmp/$REPO_NAME/hardware-configuration.nix
     
     git -C "/tmp/$REPO_NAME" add .
-    git -C "/tmp/$REPO_NAME" commit -m "Update hardware-configuration.nix for host '$HOST'"
+    git -C "/tmp/$REPO_NAME" commit -m "Update hardware-configuration.nix for host '$HOSTNAME'"
     git -C "/tmp/$REPO_NAME" push
 }
 

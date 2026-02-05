@@ -24,8 +24,9 @@
             content = {
               type = "luks";
               name = "crypted";
-              # Nutzt das vom Script übergebene Passwort
-              passwordFile = password; 
+              # Wenn password ein String ist, nutze ihn als Pfad. 
+ 	      # Wenn password null ist, fragt NixOS beim Booten interaktiv.
+   	      passwordFile = if (builtins.isString password) then password else null;
               settings.allowDiscards = true;
               content = {
                 type = "btrfs";
