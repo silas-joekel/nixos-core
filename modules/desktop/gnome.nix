@@ -10,11 +10,13 @@
   };
   
   services.printing.enable = true;
+  services.avahi.enable = true;
+  services.avahi.nssmdns4 = true;
 
   # Exklusive GNOME-Pakete
   environment.systemPackages = with pkgs; [
     gnome-tweaks
-    gnome-extensions-app
+    gnome.gnome-extensions-app
     gnomeExtensions.appindicator
     gnomeExtensions.dash-to-dock
   ];
