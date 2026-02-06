@@ -2,10 +2,21 @@
 
 {
   # Spotify
-  #environment.systemPackages = with pkgs; [
- #   spotify
-  #];
-  #allowedUnfreePackages = [ "spotify" ];
-  #networking.firewall.allowedTCPPorts = [ 57621 ]; # sync with mobile devices in the same network
-  #networking.firewall.allowedUDPPorts = [ 5353 ]; # to enable Spotify Connect, e.g. Google Cast devices
+  environment.systemPackages = with pkgs; [
+    discord
+    mangohud
+    protonup-qt
+  ];
+  
+  allowedUnfreePackages = [
+    "steam"
+    "steam-unwrapped"
+    "discord"
+  ];
+
+  programs.steam = {
+    enable = true;
+    remotePlay.openFirewall = true; # Port for Steam Remote Play
+    dedicatedServer.openFirewall = true; # Port for dedicated server
+  };
 }
