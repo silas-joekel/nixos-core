@@ -5,7 +5,7 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     disko.url = "github:nix-community/disko";
     disko.inputs.nixpkgs.follows = "nixpkgs";
-    nixos-core.url = "git+ssh://git@github.com/silas-joekel/nixos-core.git";
+    nixos-core.url = "github:silas-joekel/nixos-core";
   };
 
   outputs = { self, nixpkgs, nixos-core, disko, ... }@inputs: {
