@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }: {
+{ config, pkgs, lib, ... }: {
   nix.settings = {
     experimental-features = [ "nix-command" "flakes" ];
     auto-optimise-store = true; # Verhindert doppelte Dateien im Store
