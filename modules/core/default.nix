@@ -1,4 +1,4 @@
-{ pkgs, ... }: {
+{ pkgs, lib, ... }: {
   nix.settings = {
     experimental-features = [ "nix-command" "flakes" ];
     auto-optimise-store = true; # Verhindert doppelte Dateien im Store
@@ -7,6 +7,16 @@
     automatic = true;
     dates = "weekly";
     options = "--delete-older-than 7d";
+  };
+
+  options.allowedUnfreePackages = lib.mkOption {
+    type = lib.types.listOf lib.types.str;
+    default = [];
+    description = "Liste der unfreien Pakete, die erlaubt sind";
+  };
+  config = {
+    nixpkgs.config.allowUnfreePredicate = pkg: 
+      builtins.elem (lib.getName pkg) config.allowedUnfreePackages;
   };
   
   boot.loader.systemd-boot.enable = true;
