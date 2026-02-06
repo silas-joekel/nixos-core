@@ -147,6 +147,7 @@ setup_nix() {
     	cp /etc/nixos/templates/disko-config.nix /tmp/$REPO_NAME/disko-config.nix
     	cp /etc/nixos/templates/host-flake.nix /tmp/$REPO_NAME/flake.nix
         sed -i "s/__HOSTNAME__/$HOSTNAME/g" /tmp/$REPO_NAME/flake.nix
+        sed -i "s/__USER__/$OS_USER/g" /tmp/$REPO_NAME/flake.nix
         sed -i "s/__DISK__/$DISK/g" /tmp/$REPO_NAME/flake.nix
         
         git init "/tmp/$REPO_NAME"
@@ -168,9 +169,8 @@ setup_nix() {
 install_nix() {
     echo "🚀 Starte finale Installation von NixOS ..."
     sudo nixos-install --no-root-passwd --flake "/tmp/$REPO_NAME#$HOSTNAME"
-    sudo nixos-enter --root /mnt -c "echo $DISK_PASS | passwd --stdin root"
-    sudo nixos-enter --root /mnt -c "useradd -m -U $OS_USER -p $USER_PASS"
-    sudo nixos-enter --root /mnt -c "echo $USER_PASS | passwd --stdin $OS_USER"
+    echo "root:$DISK_PASS" | sudo nixos-enter --root /mnt -c "chpasswd"
+    echo "$OS_USER:$USER_PASS" | sudo nixos-enter --root /mnt -c "chpasswd"
 }
 
 confirm_install() {
@@ -180,17 +180,23 @@ confirm_install() {
 
 prepare_home() {
     TARGET_HOME="/mnt/home/$OS_USER"
-    
+    sudo mkdir -p "$TARGET_HOME"
+
     # ssh keys
     sudo mkdir -p "$TARGET_HOME/.ssh"
     sudo cp ~/.ssh/id_ed25519* "$TARGET_HOME/.ssh/"
-    sudo chmod 700 "$TARGET_HOME/.ssh"
-    sudo chmod 600 "$TARGET_HOME/.ssh/id_ed25519"
+
+    # git config
+    sudo cp ~/.gitconfig "$TARGET_HOME/.gitconfig"
 
     # Host-Repo kopieren
     sudo cp -r "/tmp/$REPO_NAME" "$TARGET_HOME/$REPO_NAME"
 
+    # Give rights for new home to user
     sudo chown -R 1000:100 "$TARGET_HOME"
+    sudo chmod 700 "$TARGET_HOME/.ssh"
+    sudo chmod 600 "$TARGET_HOME/.ssh/id_ed25519"
+    [ -f "$TARGET_HOME/.ssh/id_ed25519.pub" ] && sudo chmod 644 "$TARGET_HOME/.ssh/id_ed25519.pub"
 }
 
 finalize() {

@@ -5,7 +5,7 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     disko.url = "github:nix-community/disko";
     disko.inputs.nixpkgs.follows = "nixpkgs";
-    nixos-core.url = "github:silas-joekel/nixos-core";
+    nixos-core.url = "git+ssh://git@github.com/silas-joekel/nixos-core.git";
   };
 
   outputs = { self, nixpkgs, nixos-core, disko, ... }@inputs: {
@@ -19,8 +19,18 @@
         ./hardware-configuration.nix
         
         nixos-core.nixosModules.core
-        # nixos-core.nixosModules.gaming
-        # nixos-core.nixosModule.web-dev
+        #nixos-core.nixosModules.gnome
+        #nixos-core.nixosModules.common
+        #nixos-core.nixosModules.web-dev
+        #nixos-core.nixosModules.gaming
+        
+        ({ pkgs, ... }: {
+          users.users.__USER__ = {
+            isNormalUser = true;
+            extraGroups = [ "wheel" "networkmanager" "video" ];
+          };
+          networking.hostName = "__HOSTNAME__";
+        })
       ];
     };
   };
