@@ -20,6 +20,7 @@
     nixosModules = {
       core = import ./modules/core;
       gnome = import ./modules/desktop/gnome.nix;
+      common = import ./modules/common;
       web-dev = import ./modules/web-dev;
       gaming = import ./modules/gaming;
       
