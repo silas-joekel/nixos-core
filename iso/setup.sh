@@ -21,7 +21,7 @@ collect_inputs() {
     OS_USER=${OS_USER:-"silas"}
     echo -n "User-Passwort eingeben: "
     read -s USER_PASS && echo ""
-    USER_PASS=${DISK_PASS:-"asdf"}
+    USER_PASS=${USER_PASS:-"asdf"}
     read -p "Hostname eingeben: " HOSTNAME
     HOSTNAME=${HOSTNAME:-"asdf"}
     
